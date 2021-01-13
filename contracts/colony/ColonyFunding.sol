@@ -23,6 +23,14 @@ import "./ColonyStorage.sol";
 
 
 contract ColonyFunding is ColonyStorage, PatriciaTreeProofs { // ignore-swc-123
+  function lockToken() public stoppable auth returns (uint256) {
+    return ITokenLocking(tokenLockingAddress).lockToken(token);
+  }
+
+  function unlockTokenForUser(address _user, uint256 _lockId) public stoppable auth {
+    ITokenLocking(tokenLockingAddress).unlockTokenForUser(token, _user, _lockId);
+  }
+
   function setTaskManagerPayout(uint256 _id, address _token, uint256 _amount) public stoppable self {
     setTaskPayout(_id, TaskRole.Manager, _token, _amount);
     emit TaskPayoutSet(_id, TaskRole.Manager, _token, _amount);
@@ -290,8 +298,7 @@ contract ColonyFunding is ColonyStorage, PatriciaTreeProofs { // ignore-swc-123
   function startNextRewardPayout(address _token, bytes memory key, bytes memory value, uint256 branchMask, bytes32[] memory siblings)
   public stoppable auth
   {
-    ITokenLocking tokenLocking = ITokenLocking(tokenLockingAddress);
-    uint256 totalLockCount = tokenLocking.lockToken(token);
+    uint256 totalLockCount = ITokenLocking(tokenLockingAddress).lockToken(token);
     uint256 thisPayoutAmount = sub(fundingPots[0].balance[_token], pendingRewardPayments[_token]);
     require(thisPayoutAmount > 0, "colony-reward-payout-no-rewards");
     pendingRewardPayments[_token] = add(pendingRewardPayments[_token], thisPayoutAmount);
@@ -459,7 +466,7 @@ contract ColonyFunding is ColonyStorage, PatriciaTreeProofs { // ignore-swc-123
 
     uint256 reward = (mul(squareRoots[4], squareRoots[6]) / squareRoots[5]) ** 2;
 
-    tokenLocking.unlockTokenForUser(token, msg.sender, payoutId);
+    ITokenLocking(tokenLockingAddress).unlockTokenForUser(token, msg.sender, payoutId);
 
     return (payout.tokenAddress, reward);
   }
