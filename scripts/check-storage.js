@@ -30,6 +30,7 @@ walkSync("./contracts/").forEach((contractName) => {
       "contracts/extensions/OneTxPayment.sol",
       "contracts/extensions/TokenSupplier.sol",
       "contracts/extensions/VotingBase.sol",
+      "contracts/extensions/VotingHybrid.sol",
       "contracts/extensions/VotingReputation.sol",
       "contracts/extensions/VotingToken.sol",
       "contracts/gnosis/MultiSigWallet.sol", // Not directly used by any colony contracts
