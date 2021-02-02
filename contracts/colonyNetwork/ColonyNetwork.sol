@@ -20,6 +20,7 @@ pragma experimental "ABIEncoderV2";
 
 import "./../common/EtherRouter.sol";
 import "./../common/ERC20Extended.sol";
+import "./../common/GetChainId.sol";
 import "./../colony/ColonyAuthority.sol";
 import "./../colony/IColony.sol";
 import "./../colony/IMetaColony.sol";
@@ -27,7 +28,7 @@ import "./../reputationMiningCycle/IReputationMiningCycle.sol";
 import "./ColonyNetworkStorage.sol";
 
 
-contract ColonyNetwork is ColonyNetworkStorage {
+contract ColonyNetwork is ColonyNetworkStorage, GetChainId {
   // Meta Colony allowed to manage Global skills
   // All colonies are able to manage their Local (domain associated) skills
   modifier allowedToAddSkill(bool globalSkill) {
@@ -341,8 +342,12 @@ contract ColonyNetwork is ColonyNetworkStorage {
     uint256 amountToIssue = mul(annualMetaColonyStipend, sub(block.timestamp, lastMetaColonyStipendIssued)) / (365 days);
     lastMetaColonyStipendIssued = block.timestamp;
 
+    uint256 chainId = getChainId();
+    // On Xdai, we can only use bridged tokens, so no minting
+    if (chainId != 100 && chainId != 265669100) {
+      IMetaColony(metaColony).mintTokensForColonyNetwork(amountToIssue);
+    }
     // mintTokensFor is coming in #835, use that instead of this.
-    IMetaColony(metaColony).mintTokensForColonyNetwork(amountToIssue);
     ERC20Extended clnyToken = ERC20Extended(IColony(metaColony).getToken());
     clnyToken.transfer(metaColony, amountToIssue);
   }
@@ -350,7 +355,12 @@ contract ColonyNetwork is ColonyNetworkStorage {
   function setAnnualMetaColonyStipend(uint256 amount) public stoppable
   calledByMetaColony
   {
-    if (lastMetaColonyStipendIssued == 0) { lastMetaColonyStipendIssued = block.timestamp; }
+
+    if (lastMetaColonyStipendIssued == 0) {
+      lastMetaColonyStipendIssued = block.timestamp;
+    } else {
+      issueMetaColonyStipend();
+    }
     annualMetaColonyStipend = amount;
   }
 
