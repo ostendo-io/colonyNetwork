@@ -64,23 +64,3 @@ contract TestExtension3 is TestExtension {
   function identifier() public override pure returns (bytes32) { return keccak256("TestExtension"); }
   function version() public pure override returns (uint256) { return 3; }
 }
-
-contract TestVotingReputation is TestExtension {
-  function identifier() public pure override returns (bytes32) { return keccak256("VotingReputation"); }
-  function version() public pure override returns (uint256) { return 1; }
-  function executeCall(address target, bytes memory action) public {
-    bool success;
-    assembly { success := call(gas(), target, 0, add(action, 0x20), mload(action), 0, 0) }
-    require(success, "transaction-failed");
-  }
-}
-
-contract TestVotingHybrid is TestExtension {
-  function identifier() public pure override returns (bytes32) { return keccak256("VotingHybrid"); }
-  function version() public pure override returns (uint256) { return 1; }
-  function executeCall(address target, bytes memory action) public {
-    bool success;
-    assembly { success := call(gas(), target, 0, add(action, 0x20), mload(action), 0, 0) }
-    require(success, "transaction-failed");
-  }
-}
